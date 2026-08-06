@@ -2,7 +2,6 @@
 import React from 'react'
 import { Card, CardBody, Button } from 'reactstrap'
 import { useNavigate } from 'react-router-dom'
-import { BASE_URL } from '../utils/config'
 import { formatINR } from '../utils/formatCurrency'
 
 const TourCard = ({ tour }) => {

@@ -21,9 +21,8 @@ const AdminDashboard = () => {
    const [notifications, setNotifications] = useState([])
    const [showNotifications, setShowNotifications] = useState(false)
    const [searchTerm, setSearchTerm] = useState('')
-   const [activeTab, setActiveTab] = useState('tours')
-   const [showBookedUserModal, setShowBookedUserModal] = useState(false)
-   const [selectedBookedUser, setSelectedBookedUser] = useState(null)
+   // UI state (reserved for future tabs / booked-user modal)
+   // Removed unused tab/booked-user states to satisfy linter
 
    const [tourForm, setTourForm] = useState({
       title: '',
@@ -87,6 +86,7 @@ const AdminDashboard = () => {
       return null
    }
 
+   // eslint-disable-next-line react-hooks/exhaustive-deps
    useEffect(() => {
       const initDashboard = async () => {
          await refreshAuthToken()

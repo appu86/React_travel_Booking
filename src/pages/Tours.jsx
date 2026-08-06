@@ -25,10 +25,7 @@ const Tours = () => {
    } = useFetch(`${BASE_URL}/tours?page=${page}&limit=8`)
 
    // Fetch total tour count for pagination
-   const { 
-     data: tourCountData, 
-     loading: countLoading 
-   } = useFetch(`${BASE_URL}/tours/count`)
+    const { data: tourCountData } = useFetch(`${BASE_URL}/tours/count`)
 
    useEffect(() => {
       if (tourCountData) {
