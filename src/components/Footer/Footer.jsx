@@ -126,6 +126,11 @@ const Footer = () => {
                   </ListGroup>
                </Col>
             </Row>
+               <Row className="mt-4">
+                  <Col lg="12" className="text-center">
+                     <p className="mb-0">© {year} Travel App. All rights reserved.</p>
+                  </Col>
+               </Row>
          </Container>
       </footer>
    )

@@ -11,11 +11,7 @@ import { BASE_URL } from '../utils/config'
 const Tours = () => {
    const [pageCount, setPageCount] = useState(0)
    const [page, setPage] = useState(0)
-   const [searchParams, setSearchParams] = useState({
-      city: '',
-      distance: '',
-      maxGroupSize: ''
-   })
+   // Search params are handled by the SearchBar component and query params; no local state required here
 
    // Fetch tours with pagination
    const { 
@@ -38,7 +34,6 @@ const Tours = () => {
 
    // Handle search
    const handleSearch = async (searchData) => {
-      setSearchParams(searchData)
       setPage(0)
       
       try {

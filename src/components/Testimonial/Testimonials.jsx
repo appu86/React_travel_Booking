@@ -22,14 +22,16 @@ const Testimonials = () => {
                slidesToScroll: 1,
                infinite: true,
                dots: true,
-            },
+            }
+         },
+         {
             breakpoint: 576,
             settings: {
                slidesToShow: 1,
                slidesToScroll: 1,
                infinite: true,
                dots: true,
-            },
+            }
          }
       ]
    }

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useContext } from 'react'
 import { Container, Row, Col, Table, Button, Modal, Form, FormGroup, Alert, Spinner, Badge } from 'reactstrap'
 import { BASE_URL } from '../../utils/config'

@@ -23,7 +23,7 @@ const TourDetails = () => {
 
    const { photo, title, desc, price, reviews, city, address, distance, maxGroupSize } = tour || {}
 
-   const { totalRating, avgRating } = calculateAvgRating(reviews)
+   const { avgRating } = calculateAvgRating(reviews)
 
    const options = { day: 'numeric', month: 'long', year: 'numeric' }
 
