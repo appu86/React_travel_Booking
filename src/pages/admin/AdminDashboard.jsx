@@ -728,7 +728,8 @@ const AdminDashboard = () => {
                                  <th>Customer Name</th>
                                  <th>Tour Name</th>
                                  <th>Booking Date</th>
-                                 <th>Guest Size</th>
+                                 <th>Guests</th>
+                                 <th>Seats</th>
                                  <th>Status</th>
                                  <th>Actions</th>
                                </tr>
@@ -736,7 +737,7 @@ const AdminDashboard = () => {
                            <tbody>
                               {bookings.length === 0 ? (
                                  <tr>
-                                    <td colSpan="6" className="text-center">No bookings found</td>
+                                    <td colSpan="7" className="text-center">No bookings found</td>
                                  </tr>
                               ) : (
                                  bookings.map(booking => (
@@ -749,6 +750,13 @@ const AdminDashboard = () => {
                                        <td>{booking.tourName}</td>
                                        <td>{new Date(booking.bookAt).toLocaleDateString()}</td>
                                        <td>{booking.guestSize}</td>
+                                       <td>
+                                          {booking.seats && booking.seats.length > 0 ? (
+                                             <span className="badge bg-dark">{booking.seats.join(', ')}</span>
+                                          ) : (
+                                             <span className="text-muted">Standard</span>
+                                          )}
+                                       </td>
                                        <td>
                                           <Badge color={
                                              booking.status === 'confirmed' ? 'success' :

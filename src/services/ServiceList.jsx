@@ -8,18 +8,18 @@ import customizationImg from '../assets/images/customization.png'
 const servicesData = [
    {
       imgUrl: weatherImg,
-      title: `Calculate Weather`,
-      desc: `Lorem ipsum dolor sit amet, consectetur adipisicing elit.`,
+      title: `Weather Forecast`,
+      desc: `Real-time climate insights and seasonal weather guidance for every destination.`,
    },
    {
       imgUrl: guideImg,
-      title: `Best Tour Guide`,
-      desc: `Lorem ipsum dolor sit amet, consectetur adipisicing elit.`,
+      title: `Expert Tour Guides`,
+      desc: `Certified local guides committed to enriching your travel with rich stories.`,
    },
    {
       imgUrl: customizationImg,
-      title: 'Customization',
-      desc: `Lorem ipsum dolor sit amet, consectetur adipisicing elit.`,
+      title: `Custom Itineraries`,
+      desc: `Tailor your tour packages, seats, and activity schedules to your preferences.`,
    },
 ]
 

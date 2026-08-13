@@ -29,10 +29,7 @@ const Home = () => {
                      </div>
                      <h1>Traveling opens the door to creating <span className='hightlight'> memories</span></h1>
                      <p>
-                        Lorem ipsum dolor sit amet consectetur, adipisicing elit.
-                        Ullam ipsum nobis asperiores soluta voluptas quas voluptates.
-                        Molestiae tempora dignissimos, animi praesentium molestias perferendis
-                        porro expedita delectus. Soluta natus porro.
+                        Discover hand-crafted journeys, breathtaking destinations, and unforgettable adventures across the world. Uncover hidden gems with expert guides and effortless booking.
                      </p>
                   </div>
                </Col>
@@ -93,9 +90,8 @@ const Home = () => {
                <Col lg='6'>
                   <div className="experience__content">
                      <Subtitle subtitle={'Experience'} />
-                     <h2>With our all experience <br /> we will serve you</h2>
-                     <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit.
-                        <br /> Quas aliquam, hic tempora inventore suscipit unde. </p>
+                     <h2>With all our experience <br /> we serve you best</h2>
+                     <p>Over a decade of creating seamless travel experiences, personalized itineraries, and 24/7 dedicated guest support worldwide.</p>
                   </div>
 
                   <div className="counter__wrapper d-flex align-items-center gap-5">

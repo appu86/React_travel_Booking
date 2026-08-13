@@ -1,0 +1,189 @@
+/* Seat Picker Container */
+.seat-picker-container {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(250, 105, 0, 0.2);
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(10px);
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.seat-picker-title {
+  color: #0b2239;
+  font-weight: 700;
+}
+
+/* Legend */
+.legend-box {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.legend-box.available {
+  background: #e8f5e9;
+  border: 2px solid #2e7d32;
+}
+
+.legend-box.selected {
+  background: #ff6e40;
+  box-shadow: 0 0 8px rgba(255, 110, 64, 0.6);
+}
+
+.legend-box.occupied {
+  background: #cfd8dc;
+  border: 1px solid #b0bec5;
+}
+
+.legend-box.vip {
+  background: #fff8e1;
+  border: 2px solid #ffa000;
+}
+
+/* Coach Wrapper */
+.coach-wrapper {
+  background: #f8fafc;
+  border: 2px dashed #cbd5e1;
+  border-radius: 20px;
+  padding: 1rem;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+/* Driver Cabin */
+.driver-cabin {
+  background: linear-gradient(135deg, #1e293b, #334155);
+  color: #fff;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.windshield-glass {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+}
+
+/* Seats Grid */
+.seats-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.aisle-space {
+  width: 30px;
+  text-align: center;
+}
+
+.aisle-num {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+/* Seat Buttons & Animations */
+.seat-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.seat-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.seat-num {
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+/* Available State */
+.seat-btn.seat-available {
+  background: #ffffff;
+  border-color: #4caf50;
+  color: #2e7d32;
+}
+
+.seat-btn.seat-available:hover {
+  transform: translateY(-4px) scale(1.08);
+  box-shadow: 0 6px 15px rgba(76, 175, 80, 0.25);
+  background: #e8f5e9;
+}
+
+/* VIP State */
+.seat-btn.seat-vip {
+  background: #fffde7;
+  border-color: #ffb300;
+  color: #f57f17;
+}
+
+.seat-btn.seat-vip:hover {
+  transform: translateY(-4px) scale(1.08);
+  box-shadow: 0 6px 15px rgba(255, 179, 0, 0.3);
+  background: #fff8e1;
+}
+
+/* Selected State with Animation */
+.seat-btn.seat-selected {
+  background: linear-gradient(135deg, #ff6e40, #ff3d00);
+  border-color: #d50000;
+  color: #ffffff;
+  animation: seatSelectBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), seatGlowPulse 2s infinite alternate;
+}
+
+/* Occupied State */
+.seat-btn.seat-occupied {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+  color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Selected Summary Badge */
+.selected-summary-badge {
+  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+  border: 1px solid #cbd5e1;
+}
+
+/* Keyframes */
+@keyframes seatSelectBounce {
+  0% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.25) rotate(-3deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes seatGlowPulse {
+  0% {
+    box-shadow: 0 0 5px rgba(255, 61, 0, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 15px rgba(255, 61, 0, 0.9);
+  }
+}
