@@ -100,6 +100,9 @@ const ThankYou = () => {
                               <i className="ri-compass-line me-1"></i> Back to Home
                            </Link>
                         </Button>
+                        <Button className='btn btn-outline-primary px-4 py-2' tag={Link} to='/my-bookings'>
+                           <i className="ri-bookmark-3-line me-1"></i> Track My Bookings
+                        </Button>
                         <Button className='btn btn-outline-secondary px-4 py-2' onClick={() => window.print()}>
                            <i className="ri-printer-line me-1"></i> Print Request Summary
                         </Button>

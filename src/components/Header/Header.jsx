@@ -75,23 +75,27 @@ const Header = () => {
                   <div className="nav__right d-flex align-items-center gap-3">
                      <div className="nav__btns d-flex align-items-center gap-2">
                         {
-                           user ? <> 
-                                 <div className="user__profile__chip d-flex align-items-center gap-2">
-                                    <div className="user__avatar">
-                                       {user.username ? user.username.charAt(0).toUpperCase() : 'U'}
-                                    </div>
-                                    <span className='user__name fw-bold me-1'>{user.username}</span>
-                                 </div>
-                                 {(user.role === 'admin' || user.isAdmin) && (
-                                    <Button className='btn admin__nav__btn me-1'>
-                                       <Link to='/admin' style={{color: '#fff', textDecoration: 'none'}}>
-                                          <i className="ri-shield-user-line me-1"></i> Admin Panel
-                                       </Link>
-                                    </Button>
-                                 )}
-                                 <Button className='btn btn-outline-danger btn-sm rounded-pill px-3 ms-1' onClick={logout}>
-                                    <i className="ri-logout-box-r-line"></i> Logout
-                                 </Button>
+                           user ? <>                                  <div className="user__profile__chip d-flex align-items-center gap-2">
+                                     <div className="user__avatar">
+                                        {user.username ? user.username.charAt(0).toUpperCase() : 'U'}
+                                     </div>
+                                     <span className='user__name fw-bold me-1'>{user.username}</span>
+                                  </div>
+                                  <Button className='btn btn-outline-primary btn-sm rounded-pill px-3 me-1'>
+                                     <Link to='/my-bookings' style={{textDecoration: 'none', color: 'inherit'}}>
+                                        <i className="ri-bookmark-3-line me-1"></i> My Bookings
+                                     </Link>
+                                  </Button>
+                                  {(user.role === 'admin' || user.isAdmin) && (
+                                     <Button className='btn admin__nav__btn me-1'>
+                                        <Link to='/admin' style={{color: '#fff', textDecoration: 'none'}}>
+                                           <i className="ri-shield-user-line me-1"></i> Admin Panel
+                                        </Link>
+                                     </Button>
+                                  )}
+                                  <Button className='btn btn-outline-danger btn-sm rounded-pill px-3' onClick={logout}>
+                                     <i className="ri-logout-box-r-line"></i> Logout
+                                  </Button>
                               </> : <>
                                  <Button className='btn secondary__btn'><Link to='/login'>Login</Link></Button>
                                  <Button className='btn primary__btn'><Link to='/register'>Register</Link></Button>
