@@ -94,12 +94,15 @@ const Booking = ({ tour, avgRating }) => {
          const result = await res.json()
 
          if (!res.ok) {
+            if (res.status === 401) {
+               return alert('Your session token has expired or is invalid. Please click Logout, then Login again to refresh your session.')
+            }
             return alert(result.message || 'Failed to create booking')
          }
 
          navigate('/thank-you', { state: { booking: result.data } })
       } catch (error) {
-         alert(error.message)
+         alert(error.message || 'Error creating booking')
       }   
    }
 
