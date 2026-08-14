@@ -46,7 +46,7 @@ const Header = () => {
       return () => window.removeEventListener('scroll', handleScroll)
    }, [])
 
-   const toggleMenu = () => menuRef.current.classList.toggle('show__menu')
+   const toggleMenu = () => menuRef.current?.classList.toggle('show__menu')
 
    return (
       <header className='header' ref={headerRef}>
@@ -55,9 +55,8 @@ const Header = () => {
                <div className="nav__wrapper d-flex align-items-center justify-content-between">
                   {/* ========== LOGO ========== */}
                   <div className="logo">
-                     <img src={Logo} alt="" />
+                     <img src={Logo} alt="Travel Booking Logo" />
                   </div>
-                  {/* ========================== */}
 
                   {/* ========== MENU START ========== */}
                   <div className="navigation" ref={menuRef} onClick={toggleMenu}>
@@ -71,26 +70,33 @@ const Header = () => {
                         }
                      </ul>
                   </div>
-                  {/* ================================ */}
 
-                  <div className="nav__right d-flex align-items-center gap-4">
+                  {/* ========== RIGHT NAV CONTROLS ========== */}
+                  <div className="nav__right d-flex align-items-center gap-3">
                      <div className="nav__btns d-flex align-items-center gap-2">
                         {
                            user ? <> 
-                                 <h5 className='mb-0'>{user.username}</h5>
-                                 {user.role === 'admin' && (
-                                    <Button className='btn btn-warning' style={{marginLeft: '10px'}}>
-                                       <Link to='/admin' style={{color: '#000', textDecoration: 'none'}}>Admin Panel</Link>
+                                 <div className="user__profile__chip d-flex align-items-center gap-2">
+                                    <div className="user__avatar">
+                                       {user.username ? user.username.charAt(0).toUpperCase() : 'U'}
+                                    </div>
+                                    <span className='user__name fw-bold me-1'>{user.username}</span>
+                                 </div>
+                                 {(user.role === 'admin' || user.isAdmin) && (
+                                    <Button className='btn admin__nav__btn me-1'>
+                                       <Link to='/admin' style={{color: '#fff', textDecoration: 'none'}}>
+                                          <i className="ri-shield-user-line me-1"></i> Admin Panel
+                                       </Link>
                                     </Button>
                                  )}
-                                 <Button className='btn btn-dark' onClick={logout}>Logout</Button>
+                                 <Button className='btn btn-outline-danger btn-sm rounded-pill px-3 ms-1' onClick={logout}>
+                                    <i className="ri-logout-box-r-line"></i> Logout
+                                 </Button>
                               </> : <>
                                  <Button className='btn secondary__btn'><Link to='/login'>Login</Link></Button>
                                  <Button className='btn primary__btn'><Link to='/register'>Register</Link></Button>
                               </>
                         }
-                        {/* <Button className='btn secondary__btn'><Link to='/login'>Login</Link></Button>
-                        <Button className='btn primary__btn'><Link to='/register'>Register</Link></Button> */}
                      </div>
 
                      <span className="mobile__menu" onClick={toggleMenu}>

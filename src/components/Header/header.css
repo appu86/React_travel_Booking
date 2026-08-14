@@ -54,6 +54,47 @@
    z-index    : 999;
 }
 
+.user__profile__chip {
+   background: #f8fafc;
+   border: 1px solid #e2e8f0;
+   padding: 4px 12px 4px 6px;
+   border-radius: 30px;
+}
+
+.user__avatar {
+   width: 32px;
+   height: 32px;
+   background: linear-gradient(135deg, #ff7e5f, #feb47b);
+   color: white;
+   border-radius: 50%;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   font-weight: 700;
+   font-size: 0.9rem;
+}
+
+.user__name {
+   color: #1e293b;
+   font-size: 0.95rem;
+}
+
+.admin__nav__btn {
+   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+   border: none !important;
+   border-radius: 20px !important;
+   padding: 6px 16px !important;
+   font-weight: 600 !important;
+   font-size: 0.88rem !important;
+   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+   transition: all 0.2s ease !important;
+}
+
+.admin__nav__btn:hover {
+   transform: translateY(-2px);
+   box-shadow: 0 6px 16px rgba(99, 102, 241, 0.45) !important;
+}
+
 /* =============== RESPONSIVE ================ */
 @media only screen and (max-width:992px) {
    .logo img {

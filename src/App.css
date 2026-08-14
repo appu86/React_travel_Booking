@@ -18,6 +18,33 @@
 
 body {
   font-family: var(--font-name);
+  background-color: #f8fafc;
+}
+
+/* Strict Card & Image Boundaries */
+.tour__card, .card {
+  border: none !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08) !important;
+  background: #ffffff !important;
+}
+
+.tour__img {
+  position: relative !important;
+  width: 100% !important;
+  height: 220px !important;
+  max-height: 220px !important;
+  overflow: hidden !important;
+  background: #e2e8f0 !important;
+}
+
+.tour__img img {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: 220px !important;
+  object-fit: cover !important;
+  display: block !important;
 }
 
 section {

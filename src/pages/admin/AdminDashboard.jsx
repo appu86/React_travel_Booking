@@ -1,309 +1,195 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState, useEffect, useContext } from 'react'
-import { Container, Row, Col, Table, Button, Modal, Form, FormGroup, Alert, Spinner, Badge } from 'reactstrap'
-import { BASE_URL } from '../../utils/config'
-import { AuthContext } from '../../context/AuthContext'
-import { formatINR } from '../../utils/formatCurrency'
-import './admin.css'
+import React, { useState, useEffect, useContext } from 'react';
+import { 
+   Container, Row, Col, Button, Modal, ModalHeader, ModalBody, ModalFooter, 
+   Form, FormGroup, Label, Input, Badge, Spinner, Alert, Nav, NavItem, NavLink 
+} from 'reactstrap';
+import { BASE_URL } from '../../utils/config';
+import { AuthContext } from '../../context/AuthContext';
+import { formatINR } from '../../utils/formatCurrency';
+import './admin.css';
+
+const PRESET_PHOTOS = [
+  { name: "London", url: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=1200&q=80" },
+  { name: "Bali", url: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1200&q=80" },
+  { name: "Swiss Alps", url: "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?auto=format&fit=crop&w=1200&q=80" },
+  { name: "Tokyo", url: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80" },
+  { name: "Paris", url: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1200&q=80" },
+  { name: "Taj Mahal", url: "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1200&q=80" },
+  { name: "Maldives", url: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=1200&q=80" },
+  { name: "Santorini", url: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=1200&q=80" }
+];
 
 const AdminDashboard = () => {
-   const [tours, setTours] = useState([])
-   const [bookings, setBookings] = useState([])
-   const [users, setUsers] = useState([])
-   const [loading, setLoading] = useState(true)
-   const [error, setError] = useState(null)
-   const [showTourModal, setShowTourModal] = useState(false)
-   const [showBookingModal, setShowBookingModal] = useState(false)
-   const [showUserModal, setShowUserModal] = useState(false)
-   const [selectedBooking, setSelectedBooking] = useState(null)
-   const [selectedUser, setSelectedUser] = useState(null)
-   const { user, setUser } = useContext(AuthContext)
-   const [editingTour, setEditingTour] = useState(null)
-   const [notifications, setNotifications] = useState([])
-   const [showNotifications, setShowNotifications] = useState(false)
-   const [searchTerm, setSearchTerm] = useState('')
-   // UI state (reserved for future tabs / booked-user modal)
-   // Removed unused tab/booked-user states to satisfy linter
+   const [tours, setTours] = useState([]);
+   const [bookings, setBookings] = useState([]);
+   const [users, setUsers] = useState([]);
+   const [loading, setLoading] = useState(true);
+   const [error, setError] = useState(null);
+   const [successMsg, setSuccessMsg] = useState('');
+   const [activeTab, setActiveTab] = useState('overview');
+   const [searchTerm, setSearchTerm] = useState('');
 
+   // Modals
+   const [showTourModal, setShowTourModal] = useState(false);
+   const [editingTour, setEditingTour] = useState(null);
+
+   const { user } = useContext(AuthContext);
+
+   // Form State
    const [tourForm, setTourForm] = useState({
       title: '',
       city: '',
       address: '',
       distance: '',
-      photo: '',
+      photo: PRESET_PHOTOS[0].url,
       desc: '',
       price: '',
-      maxGroupSize: ''
-   })
+      maxGroupSize: '10',
+      featured: true,
+      createdBy: 'Admin'
+   });
 
-   // Get token from multiple sources
    const getToken = () => {
-      let token = null
-      
-      if (user?.token) {
-         token = user.token
-      }
-      
+      let token = user?.token;
       if (!token) {
          try {
-            const userData = localStorage.getItem("user")
+            const userData = localStorage.getItem("user");
             if (userData) {
-               const parsedUser = JSON.parse(userData)
-               if (parsedUser?.token) {
-                  token = parsedUser.token
-               }
+               const parsedUser = JSON.parse(userData);
+               token = parsedUser?.token;
             }
          } catch (err) {
-            console.error("Error parsing user:", err)
+            console.error("Error parsing user token", err);
          }
       }
-      
       if (!token) {
-         token = localStorage.getItem("token")
+         token = localStorage.getItem("token");
       }
-      
-      return token
-   }
+      return token;
+   };
 
-   // Check if user is admin
    const isAdmin = () => {
-      return user?.role === 'admin' || user?.isAdmin === true
-   }
+      return user?.role === 'admin' || user?.isAdmin === true;
+   };
 
-   // Refresh auth token
-   const refreshAuthToken = async () => {
-      try {
-         const storedUser = localStorage.getItem("user")
-         if (storedUser) {
-            const parsedUser = JSON.parse(storedUser)
-            if (parsedUser.token && setUser) {
-               setUser(parsedUser)
-               return parsedUser.token
-            }
-         }
-      } catch (err) {
-         console.error("Error refreshing auth:", err)
-      }
-      return null
-   }
-
-   // eslint-disable-next-line react-hooks/exhaustive-deps
    useEffect(() => {
-      const initDashboard = async () => {
-         await refreshAuthToken()
-         
-         if (!isAdmin()) {
-            setError("Access Denied: Admin privileges required.")
-            setLoading(false)
-            return
-         }
-         
-        await fetchData()
-      }
-      
-      initDashboard()
-      
-      // Request notification permission
-      if (Notification.permission === 'default') {
-         Notification.requestPermission()
-      }
-      
-      // Set up polling for new bookings
-      const interval = setInterval(() => {
-         if (isAdmin()) {
-            fetchNewBookings()
-         }
-      }, 30000)
-      
-      return () => clearInterval(interval)
-   }, [user?.token])
+      fetchData();
+   }, [user?.token]);
 
    const fetchData = async () => {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
       try {
-         await Promise.all([fetchTours(), fetchBookings(), fetchUsers()])
+         await Promise.all([fetchTours(), fetchBookings(), fetchUsers()]);
       } catch (err) {
-         console.error("Fetch error:", err)
-         setError(err.message || 'Failed to load data')
+         console.error("Fetch error:", err);
+         setError(err.message || 'Failed to load dashboard data');
       } finally {
-         setLoading(false)
+         setLoading(false);
       }
-   }
+   };
 
-  // Fetch tours (public)
    const fetchTours = async () => {
       try {
-         const res = await fetch(`${BASE_URL}/tours`)
-         if (!res.ok) throw new Error(`HTTP ${res.status}`)
-         const data = await res.json()
-         
+         const res = await fetch(`${BASE_URL}/tours?limit=100`);
+         if (!res.ok) throw new Error(`HTTP ${res.status}`);
+         const data = await res.json();
          if (data.success && data.data) {
-            setTours(data.data)
+            setTours(data.data);
          } else if (Array.isArray(data)) {
-            setTours(data)
-         } else {
-            setTours([])
+            setTours(data);
          }
       } catch (err) {
-         console.error("Error fetching tours:", err)
-         setError("Failed to load tours: " + err.message)
-         setTours([])
+         console.error("Error fetching tours:", err);
       }
-   }
+   };
 
-   // Fetch bookings (protected)
    const fetchBookings = async () => {
-      const token = getToken()
-      if (!token) {
-         setBookings([])
-         return
-      }
-
+      const token = getToken();
+      if (!token) return;
       try {
          const res = await fetch(`${BASE_URL}/bookings`, {
             headers: { 'Authorization': `Bearer ${token}` }
-         })
-
-         if (res.status === 401) {
-            const newToken = await refreshAuthToken()
-            if (newToken) {
-               const retryRes = await fetch(`${BASE_URL}/bookings`, {
-                  headers: { 'Authorization': `Bearer ${newToken}` }
-               })
-               if (retryRes.ok) {
-                  const data = await retryRes.json()
-                  if (data.success && data.data) {
-                     setBookings(data.data)
-                     return
-                  }
-               }
-            }
-            setBookings([])
-            return
-         }
-
-         if (!res.ok) throw new Error(`HTTP ${res.status}`)
-
-         const data = await res.json()
-         
+         });
+         if (!res.ok) return;
+         const data = await res.json();
          if (data.success && data.data) {
-            setBookings(data.data)
-         } else if (Array.isArray(data)) {
-            setBookings(data)
-         } else {
-            setBookings([])
+            setBookings(data.data);
          }
       } catch (err) {
-         console.error("Error fetching bookings:", err)
-         setBookings([])
+         console.error("Error fetching bookings:", err);
       }
-   }
+   };
 
-   // Fetch new bookings for notifications
-   const fetchNewBookings = async () => {
-      const token = getToken()
-      if (!token) return
-      
-      try {
-         const res = await fetch(`${BASE_URL}/bookings`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-         })
-         const data = await res.json()
-         
-         if (data.success && data.data) {
-            const newBookings = data.data.filter(b => 
-               !notifications.some(n => n._id === b._id) && 
-               b.status === 'pending'
-            )
-            
-            if (newBookings.length > 0) {
-               setNotifications(prev => [...newBookings, ...prev])
-               
-               // Show browser notification
-               if (Notification.permission === 'granted') {
-                  newBookings.forEach(booking => {
-                     new Notification('New Booking!', {
-                        body: `${booking.fullName} booked ${booking.tourName}`,
-                        icon: '/favicon.ico'
-                     })
-                  })
-               }
-            }
-         }
-      } catch (err) {
-         console.error('Error fetching new bookings:', err)
-      }
-   }
-
-   // Fetch users (protected)
    const fetchUsers = async () => {
-      const token = getToken()
-      if (!token) {
-         setUsers([])
-         return
-      }
-
+      const token = getToken();
+      if (!token) return;
       try {
          const res = await fetch(`${BASE_URL}/users`, {
             headers: { 'Authorization': `Bearer ${token}` }
-         })
-
-         if (res.status === 401) {
-            const newToken = await refreshAuthToken()
-            if (newToken) {
-               const retryRes = await fetch(`${BASE_URL}/users`, {
-                  headers: { 'Authorization': `Bearer ${newToken}` }
-               })
-               if (retryRes.ok) {
-                  const data = await retryRes.json()
-                  if (data.success && data.data) {
-                     setUsers(data.data)
-                     return
-                  }
-               }
-            }
-            setUsers([])
-            return
-         }
-
-         if (!res.ok) throw new Error(`HTTP ${res.status}`)
-
-         const data = await res.json()
-         
+         });
+         if (!res.ok) return;
+         const data = await res.json();
          if (data.success && data.data) {
-            setUsers(data.data)
-         } else if (Array.isArray(data)) {
-            setUsers(data)
-         } else {
-            setUsers([])
+            setUsers(data.data);
          }
       } catch (err) {
-         console.error("Error fetching users:", err)
-         setUsers([])
+         console.error("Error fetching users:", err);
       }
-   }
+   };
 
-   // Create/Update tour
+   // Open Create/Edit Modal
+   const handleOpenTourModal = (tour = null) => {
+      if (tour) {
+         setEditingTour(tour._id);
+         setTourForm({
+            title: tour.title || '',
+            city: tour.city || '',
+            address: tour.address || '',
+            distance: tour.distance || '',
+            photo: tour.photo || PRESET_PHOTOS[0].url,
+            desc: tour.desc || '',
+            price: tour.price || '',
+            maxGroupSize: tour.maxGroupSize || '10',
+            featured: tour.featured || false,
+            createdBy: tour.createdBy || 'Admin'
+         });
+      } else {
+         setEditingTour(null);
+         setTourForm({
+            title: '',
+            city: '',
+            address: '',
+            distance: '',
+            photo: PRESET_PHOTOS[0].url,
+            desc: '',
+            price: '',
+            maxGroupSize: '10',
+            featured: true,
+            createdBy: 'Admin'
+         });
+      }
+      setShowTourModal(true);
+   };
+
+   // Tour Form Submit
    const handleTourSubmit = async (e) => {
-      e.preventDefault()
-      
-      const token = getToken()
+      e.preventDefault();
+      const token = getToken();
       if (!token) {
-         setError("Please login first")
-         return
+         setError("Admin authentication token required. Please login.");
+         return;
       }
 
       if (!tourForm.title || !tourForm.city || !tourForm.price) {
-         setError("Please fill in all required fields (Title, City, Price)")
-         return
+         setError("Please fill in required fields (Title, City, Price)");
+         return;
       }
 
       try {
-         const method = editingTour ? 'PUT' : 'POST'
-         const url = editingTour
-            ? `${BASE_URL}/tours/${editingTour}`
-            : `${BASE_URL}/tours`
+         const method = editingTour ? 'PUT' : 'POST';
+         const url = editingTour ? `${BASE_URL}/tours/${editingTour}` : `${BASE_URL}/tours`;
 
          const res = await fetch(url, {
             method,
@@ -315,101 +201,69 @@ const AdminDashboard = () => {
                ...tourForm,
                price: Number(tourForm.price),
                distance: Number(tourForm.distance) || 0,
-               maxGroupSize: Number(tourForm.maxGroupSize) || 10
+               maxGroupSize: Number(tourForm.maxGroupSize) || 10,
+               createdBy: tourForm.createdBy || 'Admin'
             })
-         })
+         });
 
-         if (res.status === 401) {
-            setError("Authentication failed. Please logout and login again.")
-            return
-         }
+         const data = await res.json();
+         if (!res.ok) throw new Error(data.message || 'Operation failed');
 
-         const data = await res.json()
-
-         if (!res.ok) {
-            setError(data.message || `Failed to ${editingTour ? 'update' : 'create'} tour`)
-            return
-         }
-
-         setShowTourModal(false)
-         await fetchTours()
-         
-         setEditingTour(null)
-         setTourForm({
-            title: '',
-            city: '',
-            address: '',
-            distance: '',
-            photo: '',
-            desc: '',
-            price: '',
-            maxGroupSize: ''
-         })
-         
-         alert(`Tour ${editingTour ? 'updated' : 'created'} successfully!`)
+         setShowTourModal(false);
+         setSuccessMsg(`Tour successfully ${editingTour ? 'updated' : 'created by Admin'}!`);
+         setTimeout(() => setSuccessMsg(''), 4000);
+         await fetchTours();
       } catch (err) {
-         console.error("Error saving tour:", err)
-         setError("Error saving tour: " + err.message)
+         console.error("Save tour error:", err);
+         setError(err.message || "Failed to save tour");
       }
-   }
+   };
 
-   // Delete tour
+   // Toggle Featured
+   const handleToggleFeatured = async (tour) => {
+      const token = getToken();
+      if (!token) return;
+      try {
+         const res = await fetch(`${BASE_URL}/tours/${tour._id}`, {
+            method: 'PUT',
+            headers: {
+               'Content-Type': 'application/json',
+               'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ featured: !tour.featured })
+         });
+         if (res.ok) {
+            fetchTours();
+         }
+      } catch (err) {
+         console.error("Toggle featured error:", err);
+      }
+   };
+
+   // Delete Tour
    const handleDeleteTour = async (id) => {
-      const token = getToken()
-      if (!token) {
-         setError("Login required")
-         return
-      }
-
-      if (!window.confirm("Delete this tour? This action cannot be undone.")) return
-
+      if (!window.confirm("Are you sure you want to delete this tour?")) return;
+      const token = getToken();
+      if (!token) return;
       try {
          const res = await fetch(`${BASE_URL}/tours/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
-         })
-
-         if (!res.ok) throw new Error(`HTTP ${res.status}`)
-
-         await fetchTours()
-         alert("Tour deleted successfully")
+         });
+         if (res.ok) {
+            setSuccessMsg("Tour deleted successfully");
+            setTimeout(() => setSuccessMsg(''), 3000);
+            fetchTours();
+         }
       } catch (err) {
-         console.error("Error deleting tour:", err)
-         setError("Error deleting tour: " + err.message)
+         console.error("Delete tour error:", err);
       }
-   }
+   };
 
-   // Delete booking
-   const handleDeleteBooking = async (id) => {
-      const token = getToken()
-      if (!token) {
-         setError("Login required")
-         return
-      }
-
-      if (!window.confirm("Delete this booking? This action cannot be undone.")) return
-
-      try {
-         const res = await fetch(`${BASE_URL}/bookings/${id}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
-         })
-
-         if (!res.ok) throw new Error(`HTTP ${res.status}`)
-
-         await fetchBookings()
-         alert("Booking deleted successfully")
-      } catch (err) {
-         console.error("Error deleting booking:", err)
-         setError("Error deleting booking: " + err.message)
-      }
-   }
-
-   // Confirm booking
+   // Confirm Booking
    const handleConfirmBooking = async (id) => {
-      const token = getToken()
-      if (!token) return
-
+      const token = getToken();
+      if (!token) return;
       try {
          const res = await fetch(`${BASE_URL}/bookings/${id}`, {
             method: 'PUT',
@@ -418,636 +272,609 @@ const AdminDashboard = () => {
                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ status: 'confirmed' })
-         })
-
+         });
          if (res.ok) {
-            await fetchBookings()
-            setNotifications(notifications.filter(n => n._id !== id))
-            alert("Booking confirmed successfully!")
-         } else {
-            const data = await res.json()
-            alert(data.message || "Failed to confirm booking")
+            setSuccessMsg("Booking status updated to Confirmed!");
+            setTimeout(() => setSuccessMsg(''), 3000);
+            fetchBookings();
          }
       } catch (err) {
-         console.error("Error confirming booking:", err)
-         alert("Error: " + err.message)
+         console.error("Confirm booking error:", err);
       }
-   }
+   };
 
-   const viewBookingDetails = (booking) => {
-      setSelectedBooking(booking)
-      setShowBookingModal(true)
-   }
-
-   const viewUserDetails = (userObj) => {
-      setSelectedUser(userObj)
-      setShowUserModal(true)
-   }
-
-   // Delete user
-   const handleDeleteUser = async (userId) => {
-      const token = getToken()
-      if (!token) {
-         setError("Login required")
-         return
-      }
-
-      if (!window.confirm("Delete this user? This action cannot be undone.")) return
-
+   // Delete Booking
+   const handleDeleteBooking = async (id) => {
+      if (!window.confirm("Delete this booking record?")) return;
+      const token = getToken();
+      if (!token) return;
       try {
-         const res = await fetch(`${BASE_URL}/users/${userId}`, {
+         const res = await fetch(`${BASE_URL}/bookings/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
-         })
-
-         if (!res.ok) throw new Error(`HTTP ${res.status}`)
-
-         await fetchUsers()
-         alert("User deleted successfully")
-      } catch (err) {
-         console.error("Error deleting user:", err)
-         setError("Error deleting user: " + err.message)
-      }
-   }
-
-   const handleEditTour = (tour) => {
-      setEditingTour(tour._id)
-      setTourForm({
-         title: tour.title || '',
-         city: tour.city || '',
-         address: tour.address || '',
-         distance: tour.distance || '',
-         photo: tour.photo || '',
-         desc: tour.desc || '',
-         price: tour.price || '',
-         maxGroupSize: tour.maxGroupSize || ''
-      })
-      setShowTourModal(true)
-   }
-
-   const openNewTourModal = () => {
-      setEditingTour(null)
-      setTourForm({
-         title: '',
-         city: '',
-         address: '',
-         distance: '',
-         photo: '',
-         desc: '',
-         price: '',
-         maxGroupSize: ''
-      })
-      setShowTourModal(true)
-   }
-
-   // Filter tours based on search
-   const filteredTours = tours.filter(tour =>
-      tour.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      tour.city?.toLowerCase().includes(searchTerm.toLowerCase())
-   )
-
-   // Get booked users with their booking details
-   const getBookedUsers = () => {
-      const bookedUsersMap = new Map()
-      const usersById = new Map(users.map(u => [String(u._id || u.id), u]))
-      
-      bookings.forEach(booking => {
-         const userId = booking.userId || booking.userId === 0 ? String(booking.userId) : null
-         const userProfile = userId ? usersById.get(userId) : null
-         const key = userId || booking.email || booking.fullName || `${booking._id}`
-         const email = booking.email || userProfile?.email || 'Unknown'
-         const fullName = booking.fullName || userProfile?.username || userProfile?.name || 'Unknown'
-         const phone = booking.phone || userProfile?.phone || 'N/A'
-
-         if (!bookedUsersMap.has(key)) {
-            bookedUsersMap.set(key, {
-               userId: userId || userProfile?._id || null,
-               email,
-               fullName,
-               phone,
-               bookings: [],
-               totalSpent: 0
-            })
+         });
+         if (res.ok) {
+            setSuccessMsg("Booking record deleted");
+            setTimeout(() => setSuccessMsg(''), 3000);
+            fetchBookings();
          }
-         
-         const userData = bookedUsersMap.get(key)
-         userData.bookings.push(booking)
-         userData.totalSpent += booking.totalAmount || 0
-      })
-      
-      return Array.from(bookedUsersMap.values()).sort((a, b) => b.bookings.length - a.bookings.length)
-   }
+      } catch (err) {
+         console.error("Delete booking error:", err);
+      }
+   };
 
-   const bookedUsers = getBookedUsers()
+   // Revenue calculation
+   const totalRevenue = bookings.reduce((sum, b) => sum + (b.totalAmount || b.price || 0), 0);
 
-   const checkAuthStatus = () => {
-      const token = getToken()
-      console.log("=== AUTH STATUS ===")
-      console.log("User:", user)
-      console.log("Token exists:", !!token)
-      console.log("Is Admin:", isAdmin())
-      alert(`Auth Status:\nToken: ${token ? 'Present' : 'Missing'}\nAdmin: ${isAdmin()}\nUser: ${user?.email || 'No user'}`)
-   }
+   // Filtered Tours
+   const filteredTours = tours.filter(t => 
+      t.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      t.city?.toLowerCase().includes(searchTerm.toLowerCase())
+   );
 
-   if (loading) {
+   // Filtered Bookings
+   const filteredBookings = bookings.filter(b => 
+      b.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      b.tourName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      b.userEmail?.toLowerCase().includes(searchTerm.toLowerCase())
+   );
+
+   // Filtered Users
+   const filteredUsers = users.filter(u => 
+      u.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.email?.toLowerCase().includes(searchTerm.toLowerCase())
+   );
+
+   if (!isAdmin()) {
       return (
-         <div className="text-center mt-5">
-            <Spinner color="primary" size="lg" />
-            <h4 className="mt-3">Loading Dashboard...</h4>
-         </div>
-      )
-   }
-   
-   if (error) {
-      return (
-         <Container className="mt-5">
-            <Alert color="danger">
-               <h4 className="alert-heading">Error</h4>
-               <p>{error}</p>
-               <hr />
-               <Button color="primary" onClick={() => window.location.reload()}>
-                  Retry
-               </Button>
+         <Container className="py-5 text-center">
+            <Alert color="danger" className="py-4">
+               <h4><i className="ri-shield-cross-line me-2"></i>Access Denied</h4>
+               <p className="mb-0">You must be logged in as an Admin to access the Admin Control Center.</p>
             </Alert>
          </Container>
-      )
+      );
    }
 
    return (
-      <div className="admin-dashboard">
-         <Container fluid>
-            {/* Header with Notifications */}
-            <Row className="mb-4">
-               <Col lg="12">
-                  <div className="dashboard-header">
-                     <div className="d-flex justify-content-between align-items-center">
-                        <div>
-                           <h1>Admin Dashboard</h1>
-                           <p>Welcome back, {user?.name || user?.email || 'Admin'}!</p>
-                        </div>
-                        <div className="notification-area">
-                           <div className="notification-bell" onClick={() => setShowNotifications(!showNotifications)}>
-                              <i className="ri-notification-3-line"></i>
-                              {notifications.length > 0 && (
-                                 <span className="notification-badge">{notifications.length}</span>
-                              )}
-                              {showNotifications && notifications.length > 0 && (
-                                 <div className="notification-dropdown">
-                                    <h5>New Bookings</h5>
-                                    {notifications.map(notif => (
-                                       <div key={notif._id} className="notification-item">
-                                          <p><strong>{notif.fullName}</strong> booked <strong>{notif.tourName}</strong></p>
-                                          <small>{new Date(notif.bookAt).toLocaleString()}</small>
-                                          <div className="mt-2">
-                                             <Button size="sm" color="success" onClick={() => handleConfirmBooking(notif._id)}>
-                                                Confirm
-                                             </Button>
-                                          </div>
-                                       </div>
-                                    ))}
-                                 </div>
-                              )}
-                           </div>
-                           <Button size="sm" color="info" onClick={checkAuthStatus} className="ms-2">
-                              Debug
-                           </Button>
-                        </div>
+      <div className="admin-dashboard-container">
+         <Container fluid="lg" className="pt-4">
+            
+            {/* Header Banner */}
+            <div className="admin-header-banner d-flex align-items-center justify-content-between flex-wrap gap-3">
+               <div>
+                  <div className="d-flex align-items-center gap-2 mb-1">
+                     <h1><i className="ri-dashboard-3-line me-2"></i>Admin Control Center</h1>
+                     <span className="admin-badge-role">👑 System Administrator</span>
+                  </div>
+                  <p className="text-white-50 mb-0">Manage tour packages created by admin, monitor bookings, and oversee registered accounts.</p>
+               </div>
+
+               <div className="d-flex align-items-center gap-2">
+                  <Button color="light" className="rounded-pill px-4 font-weight-bold" onClick={() => handleOpenTourModal()}>
+                     <i className="ri-add-line me-1"></i> Add Tour (Admin)
+                  </Button>
+                  <Button outline color="light" className="rounded-pill" onClick={fetchData}>
+                     <i className="ri-refresh-line"></i>
+                  </Button>
+               </div>
+            </div>
+
+            {/* Alerts */}
+            {successMsg && <Alert color="success" className="rounded-12 shadow-sm mb-4"><i className="ri-checkbox-circle-line me-2"></i>{successMsg}</Alert>}
+            {error && <Alert color="danger" className="rounded-12 shadow-sm mb-4"><i className="ri-error-warning-line me-2"></i>{error}</Alert>}
+
+            {/* KPI Cards Grid */}
+            <Row className="g-4 mb-4">
+               <Col lg="3" sm="6">
+                  <div className="admin-kpi-card">
+                     <div className="kpi-content">
+                        <h3>{tours.length}</h3>
+                        <p>Total Tours</p>
+                     </div>
+                     <div className="kpi-icon-box kpi-icon-indigo">
+                        <i className="ri-flight-takeoff-line"></i>
+                     </div>
+                  </div>
+               </Col>
+               <Col lg="3" sm="6">
+                  <div className="admin-kpi-card">
+                     <div className="kpi-content">
+                        <h3>{bookings.length}</h3>
+                        <p>Active Bookings</p>
+                     </div>
+                     <div className="kpi-icon-box kpi-icon-emerald">
+                        <i className="ri-bookmark-3-line"></i>
+                     </div>
+                  </div>
+               </Col>
+               <Col lg="3" sm="6">
+                  <div className="admin-kpi-card">
+                     <div className="kpi-content">
+                        <h3>{users.length}</h3>
+                        <p>Registered Users</p>
+                     </div>
+                     <div className="kpi-icon-box kpi-icon-sky">
+                        <i className="ri-user-star-line"></i>
+                     </div>
+                  </div>
+               </Col>
+               <Col lg="3" sm="6">
+                  <div className="admin-kpi-card">
+                     <div className="kpi-content">
+                        <h3>{formatINR(totalRevenue)}</h3>
+                        <p>Total Revenue</p>
+                     </div>
+                     <div className="kpi-icon-box kpi-icon-amber">
+                        <i className="ri-wallet-3-line"></i>
                      </div>
                   </div>
                </Col>
             </Row>
 
-            {/* Stats Cards */}
-            <Row className="mb-4">
-               <Col lg="3" md="6" className="mb-3">
-                  <div className="stat-card bg-primary text-white">
-                     <h3>{tours.length}</h3>
-                     <p>Total Tours</p>
-                  </div>
-               </Col>
-               <Col lg="3" md="6" className="mb-3">
-                  <div className="stat-card bg-success text-white">
-                     <h3>{bookings.length}</h3>
-                     <p>Total Bookings</p>
-                  </div>
-               </Col>
-               <Col lg="3" md="6" className="mb-3">
-                  <div className="stat-card bg-info text-white">
-                     <h3>{bookings.filter(b => b.status === 'confirmed').length}</h3>
-                     <p>Confirmed Bookings</p>
-                  </div>
-               </Col>
-               <Col lg="3" md="6" className="mb-3">
-                  <div className="stat-card bg-warning text-white">
-                     <h3>{formatINR(bookings.filter(b => b.status === 'confirmed').reduce((sum, b) => sum + (b.totalAmount || 0), 0))}</h3>
-                     <p>Total Revenue</p>
-                  </div>
-               </Col>
-            </Row>
+            {/* Main Tabs Header */}
+            <div className="d-flex align-items-center justify-content-between flex-wrap mb-3 gap-3">
+               <Nav className="admin-nav-tabs">
+                  <NavItem>
+                     <NavLink className={activeTab === 'overview' ? 'active' : ''} onClick={() => setActiveTab('overview')}>
+                        <i className="ri-pie-chart-2-line"></i> Overview
+                     </NavLink>
+                  </NavItem>
+                  <NavItem>
+                     <NavLink className={activeTab === 'tours' ? 'active' : ''} onClick={() => setActiveTab('tours')}>
+                        <i className="ri-earth-line"></i> Manage Tours ({tours.length})
+                     </NavLink>
+                  </NavItem>
+                  <NavItem>
+                     <NavLink className={activeTab === 'bookings' ? 'active' : ''} onClick={() => setActiveTab('bookings')}>
+                        <i className="ri-calendar-check-line"></i> Bookings ({bookings.length})
+                     </NavLink>
+                  </NavItem>
+                  <NavItem>
+                     <NavLink className={activeTab === 'users' ? 'active' : ''} onClick={() => setActiveTab('users')}>
+                        <i className="ri-group-line"></i> Users ({users.length})
+                     </NavLink>
+                  </NavItem>
+               </Nav>
 
-            {/* Search Bar */}
-            <Row className="mb-3">
-               <Col lg="12">
-                  <input
-                     type="text"
-                     className="form-control"
-                     placeholder="Search tours by title or city..."
+               <div style={{ maxWidth: '300px' }} className="w-100">
+                  <Input 
+                     type="text" 
+                     placeholder="Search tours, bookings, users..." 
+                     className="rounded-pill border-0 shadow-sm px-3"
                      value={searchTerm}
                      onChange={(e) => setSearchTerm(e.target.value)}
-                     style={{ maxWidth: '300px' }}
                   />
-               </Col>
-            </Row>
+               </div>
+            </div>
 
-            {/* Tours Management */}
-            <Row className="mb-4">
-               <Col lg="12">
-                  <div className="section-card">
-                     <div className="section-header d-flex justify-content-between align-items-center mb-3">
-                        <h2>Tours Management</h2>
-                        <Button color="primary" onClick={openNewTourModal}>
-                           + Add New Tour
-                        </Button>
-                     </div>
-                     
-                     <div className="table-responsive">
-                        <Table hover striped className="admin-table">
-                           <thead>
-                              <tr>
-                                 <th>Title</th>
-                                 <th>City</th>
-                                 <th>Price</th>
-                                 <th>Distance</th>
-                                 <th>Max Size</th>
-                                 <th>Actions</th>
-                               </tr>
-                           </thead>
-                           <tbody>
-                              {filteredTours.length === 0 ? (
-                                 <tr>
-                                    <td colSpan="6" className="text-center">No tours found</td>
-                                 </tr>
-                              ) : (
-                                 filteredTours.map(tour => (
-                                    <tr key={tour._id}>
-                                       <td><strong>{tour.title}</strong></td>
-                                       <td>{tour.city}</td>
-                                       <td>{formatINR(tour.price)}</td>
-                                       <td>{tour.distance} km</td>
-                                       <td>{tour.maxGroupSize}</td>
-                                       <td>
-                                          <Button size="sm" color="warning" onClick={() => handleEditTour(tour)} className="me-2">
-                                             Edit
-                                          </Button>
-                                          <Button size="sm" color="danger" onClick={() => handleDeleteTour(tour._id)}>
-                                             Delete
-                                          </Button>
-                                        </td>
+            {/* Loading Spinner */}
+            {loading ? (
+               <div className="text-center py-5">
+                  <Spinner color="indigo" style={{ width: '3rem', height: '3rem' }} />
+                  <p className="mt-3 text-muted">Loading dashboard records...</p>
+               </div>
+            ) : (
+               <>
+                  {/* TAB 1: OVERVIEW */}
+                  {activeTab === 'overview' && (
+                     <Row className="g-4">
+                        <Col lg="8">
+                           <div className="admin-panel-card">
+                              <div className="d-flex align-items-center justify-content-between mb-3">
+                                 <h5 className="fw-bold mb-0"><i className="ri-history-line me-2 text-indigo"></i>Recent Tours Added by Admin</h5>
+                                 <Button color="link" size="sm" onClick={() => setActiveTab('tours')}>View All</Button>
+                              </div>
+                              <div className="table-responsive">
+                                 <table className="admin-custom-table">
+                                    <thead>
+                                       <tr>
+                                          <th>Tour</th>
+                                          <th>Destination</th>
+                                          <th>Price</th>
+                                          <th>Badge</th>
                                        </tr>
-                                 ))
-                              )}
-                           </tbody>
-                        </Table>
-                     </div>
-                  </div>
-               </Col>
-            </Row>
+                                    </thead>
+                                    <tbody>
+                                       {tours.slice(0, 5).map((tour) => (
+                                          <tr key={tour._id}>
+                                             <td>
+                                                <div className="d-flex align-items-center gap-3">
+                                                   <img src={tour.photo || PRESET_PHOTOS[0].url} alt="" className="tour-admin-thumb" />
+                                                   <div>
+                                                      <div className="fw-bold text-dark">{tour.title}</div>
+                                                      <small className="text-muted"><i className="ri-map-pin-line me-1"></i>{tour.address || tour.city}</small>
+                                                   </div>
+                                                </div>
+                                             </td>
+                                             <td><span className="badge bg-light text-dark px-3 py-2 rounded-pill">{tour.city}</span></td>
+                                             <td className="fw-bold text-emerald">{formatINR(tour.price)}</td>
+                                             <td>
+                                                <Badge color="indigo" pill className="px-3 py-2">
+                                                   👑 Added by Admin
+                                                </Badge>
+                                             </td>
+                                          </tr>
+                                       ))}
+                                    </tbody>
+                                 </table>
+                              </div>
+                           </div>
+                        </Col>
 
-            {/* Bookings Management */}
-            <Row className="mb-4">
-               <Col lg="12">
-                  <div className="section-card">
-                     <div className="section-header mb-3">
-                        <h2>Bookings Management</h2>
-                     </div>
-                     
-                     <div className="table-responsive">
-                        <Table hover striped className="admin-table">
-                           <thead>
-                             <tr>
-                                 <th>Customer Name</th>
-                                 <th>Tour Name</th>
-                                 <th>Booking Date</th>
-                                 <th>Guests</th>
-                                 <th>Seats</th>
-                                 <th>Status</th>
-                                 <th>Actions</th>
-                               </tr>
-                           </thead>
-                           <tbody>
-                              {bookings.length === 0 ? (
+                        <Col lg="4">
+                           <div className="admin-panel-card">
+                              <h5 className="fw-bold mb-3"><i className="ri-pulse-line me-2 text-emerald"></i>System Quick Actions</h5>
+                              <div className="d-grid gap-2">
+                                 <Button color="indigo" block className="py-2.5 rounded-12 fw-semibold" onClick={() => handleOpenTourModal()}>
+                                    <i className="ri-add-circle-line me-2"></i>Create New Admin Tour
+                                 </Button>
+                                 <Button outline color="secondary" block className="py-2.5 rounded-12 fw-semibold" onClick={() => setActiveTab('bookings')}>
+                                    <i className="ri-survey-line me-2"></i>Review Pending Bookings
+                                 </Button>
+                              </div>
+
+                              <hr className="my-4" />
+
+                              <h6 className="fw-bold mb-2">Tour Category Distribution</h6>
+                              <div className="d-flex justify-content-between align-items-center mb-2">
+                                 <span className="text-muted">Featured Tours:</span>
+                                 <Badge color="warning" pill>{tours.filter(t => t.featured).length}</Badge>
+                              </div>
+                              <div className="d-flex justify-content-between align-items-center mb-2">
+                                 <span className="text-muted">Standard Tours:</span>
+                                 <Badge color="secondary" pill>{tours.filter(t => !t.featured).length}</Badge>
+                              </div>
+                           </div>
+                        </Col>
+                     </Row>
+                  )}
+
+                  {/* TAB 2: MANAGE TOURS */}
+                  {activeTab === 'tours' && (
+                     <div className="admin-panel-card">
+                        <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+                           <div>
+                              <h5 className="fw-bold mb-1">Tours Portfolio ({filteredTours.length})</h5>
+                              <p className="text-muted small mb-0">Tours created and managed by administrator.</p>
+                           </div>
+                           <Button color="primary" className="rounded-pill px-4" onClick={() => handleOpenTourModal()}>
+                              <i className="ri-add-line me-1"></i> Add Tour
+                           </Button>
+                        </div>
+
+                        <div className="table-responsive">
+                           <table className="admin-custom-table">
+                              <thead>
                                  <tr>
-                                    <td colSpan="7" className="text-center">No bookings found</td>
+                                    <th>Package Info</th>
+                                    <th>City</th>
+                                    <th>Price</th>
+                                    <th>Group / Dist</th>
+                                    <th>Featured</th>
+                                    <th>Created By</th>
+                                    <th className="text-end">Actions</th>
                                  </tr>
-                              ) : (
-                                 bookings.map(booking => (
-                                    <tr key={booking._id}>
+                              </thead>
+                              <tbody>
+                                 {filteredTours.map((tour) => (
+                                    <tr key={tour._id}>
                                        <td>
-                                          <strong>{booking.fullName}</strong>
-                                          <br />
-                                          <small>{booking.email}</small>
+                                          <div className="d-flex align-items-center gap-3">
+                                             <img src={tour.photo || PRESET_PHOTOS[0].url} alt="" className="tour-admin-thumb" />
+                                             <div>
+                                                <div className="fw-bold text-dark">{tour.title}</div>
+                                                <small className="text-muted">{tour.address || 'Standard Address'}</small>
+                                             </div>
+                                          </div>
                                        </td>
-                                       <td>{booking.tourName}</td>
-                                       <td>{new Date(booking.bookAt).toLocaleDateString()}</td>
-                                       <td>{booking.guestSize}</td>
+                                       <td><span className="badge bg-light text-dark px-3 py-2 rounded-pill">{tour.city}</span></td>
+                                       <td className="fw-bold text-success">{formatINR(tour.price)}</td>
                                        <td>
-                                          {booking.seats && booking.seats.length > 0 ? (
-                                             <span className="badge bg-dark">{booking.seats.join(', ')}</span>
-                                          ) : (
-                                             <span className="text-muted">Standard</span>
-                                          )}
-                                       </td>
-                                       <td>
-                                          <Badge color={
-                                             booking.status === 'confirmed' ? 'success' :
-                                             booking.status === 'pending' ? 'warning' :
-                                             booking.status === 'cancelled' ? 'danger' : 'secondary'
-                                          }>
-                                             {booking.status || 'pending'}
-                                          </Badge>
+                                          <small className="d-block text-dark fw-medium"><i className="ri-user-3-line"></i> {tour.maxGroupSize} max</small>
+                                          <small className="text-muted"><i className="ri-road-map-line"></i> {tour.distance} km</small>
                                        </td>
                                        <td>
-                                          <Button size="sm" color="info" onClick={() => viewBookingDetails(booking)} className="me-2">
-                                             View
-                                          </Button>
-                                          {booking.status === 'pending' && (
-                                             <Button size="sm" color="success" onClick={() => handleConfirmBooking(booking._id)} className="me-2">
-                                                Confirm
-                                             </Button>
-                                          )}
-                                          <Button size="sm" color="danger" onClick={() => handleDeleteBooking(booking._id)}>
-                                             Delete
-                                          </Button>
+                                          <button 
+                                             className={`action-btn-circle ${tour.featured ? 'action-featured' : 'bg-secondary'}`}
+                                             onClick={() => handleToggleFeatured(tour)}
+                                             title="Toggle Featured"
+                                          >
+                                             <i className={tour.featured ? "ri-star-fill" : "ri-star-line"}></i>
+                                          </button>
+                                       </td>
+                                       <td>
+                                          <span className="badge bg-primary px-2.5 py-1.5 rounded-pill">
+                                             👑 {tour.createdBy || 'Admin'}
+                                          </span>
+                                       </td>
+                                       <td className="text-end">
+                                          <button className="action-btn-circle action-edit" onClick={() => handleOpenTourModal(tour)} title="Edit Tour">
+                                             <i className="ri-pencil-line"></i>
+                                          </button>
+                                          <button className="action-btn-circle action-delete" onClick={() => handleDeleteTour(tour._id)} title="Delete Tour">
+                                             <i className="ri-delete-bin-line"></i>
+                                          </button>
                                        </td>
                                     </tr>
-                                 ))
-                              )}
-                           </tbody>
-                        </Table>
+                                 ))}
+                              </tbody>
+                           </table>
+                        </div>
                      </div>
-                  </div>
-               </Col>
-            </Row>
+                  )}
 
-            {/* Booked Users Section */}
-            <Row className="mb-4">
-               <Col lg="12">
-                  <div className="section-card">
-                     <div className="section-header mb-3">
-                        <h2>Booked Users Report</h2>
-                     </div>
-                     
-                     <div className="table-responsive">
-                        <Table hover striped className="admin-table">
-                           <thead>
-                             <tr>
-                                 <th>Customer Name</th>
-                                 <th>Email</th>
-                                 <th>Phone</th>
-                                 <th>Total Bookings</th>
-                                 <th>Total Spent</th>
-                                 <th>Latest Booking</th>
-                               </tr>
-                           </thead>
-                           <tbody>
-                              {bookedUsers.length === 0 ? (
-                                 <tr>
-                                    <td colSpan="6" className="text-center">No bookings found</td>
-                                 </tr>
-                              ) : (
-                                 bookedUsers.map((user, idx) => (
-                                    <tr key={idx}>
-                                       <td>
-                                          <strong>{user.fullName}</strong>
-                                       </td>
-                                       <td>{user.email}</td>
-                                       <td>{user.phone || 'N/A'}</td>
-                                       <td>
-                                          <Badge color="info">{user.bookings.length}</Badge>
-                                       </td>
-                                       <td>{formatINR(user.totalSpent)}</td>
-                                       <td>{new Date(Math.max(...user.bookings.map(b => new Date(b.bookAt)))).toLocaleDateString()}</td>
-                                    </tr>
-                                 ))
-                              )}
-                           </tbody>
-                        </Table>
-                     </div>
-                  </div>
-               </Col>
-            </Row>
+                  {/* TAB 3: BOOKINGS */}
+                  {activeTab === 'bookings' && (
+                     <div className="admin-panel-card">
+                        <div className="mb-4">
+                           <h5 className="fw-bold mb-1">Customer Bookings Management ({filteredBookings.length})</h5>
+                           <p className="text-muted small mb-0">Overview of user tour bookings and status confirmation.</p>
+                        </div>
 
-            {/* Users Management */}
-            <Row className="mb-4">
-               <Col lg="12">
-                  <div className="section-card">
-                     <div className="section-header mb-3">
-                        <h2>Users Management</h2>
-                     </div>
-                     
-                     <div className="table-responsive">
-                        <Table hover striped className="admin-table">
-                           <thead>
-                             <tr>
-                                 <th>Name</th>
-                                 <th>Email</th>
-                                 <th>Role</th>
-                                 <th>Phone</th>
-                                 <th>Actions</th>
-                               </tr>
-                           </thead>
-                           <tbody>
-                              {users.length === 0 ? (
+                        <div className="table-responsive">
+                           <table className="admin-custom-table">
+                              <thead>
                                  <tr>
-                                    <td colSpan="5" className="text-center">No users found</td>
+                                    <th>Customer</th>
+                                    <th>Tour Name</th>
+                                    <th>Group Size</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th className="text-end">Actions</th>
                                  </tr>
-                              ) : (
-                                 users.map(userObj => (
-                                    <tr key={userObj._id}>
-                                       <td>
-                                          <strong>{userObj.username || 'N/A'}</strong>
-                                       </td>
-                                       <td>{userObj.email}</td>
-                                       <td>
-                                          <Badge color={userObj.role === 'admin' ? 'primary' : 'secondary'}>
-                                             {userObj.role || 'user'}
-                                          </Badge>
-                                       </td>
-                                       <td>{userObj.phone || 'N/A'}</td>
-                                       <td>
-                                          <Button size="sm" color="info" onClick={() => viewUserDetails(userObj)} className="me-2">
-                                             View
-                                          </Button>
-                                          <Button size="sm" color="danger" onClick={() => handleDeleteUser(userObj._id)}>
-                                             Delete
-                                          </Button>
-                                       </td>
+                              </thead>
+                              <tbody>
+                                 {filteredBookings.length === 0 ? (
+                                    <tr>
+                                       <td colSpan="6" className="text-center py-4 text-muted">No booking records found.</td>
                                     </tr>
-                                 ))
-                              )}
-                           </tbody>
-                        </Table>
+                                 ) : (
+                                    filteredBookings.map((b) => (
+                                       <tr key={b._id}>
+                                          <td>
+                                             <div className="fw-bold text-dark">{b.fullName || 'Guest User'}</div>
+                                             <small className="text-muted">{b.userEmail || b.phone || 'No Contact'}</small>
+                                          </td>
+                                          <td className="fw-semibold text-primary">{b.tourName || 'Tour Package'}</td>
+                                          <td>{b.guestSize || b.maxGroupSize || 1} Person(s)</td>
+                                          <td>{b.bookAt ? new Date(b.bookAt).toLocaleDateString() : 'Recent'}</td>
+                                          <td>
+                                             <Badge color={b.status === 'confirmed' ? 'success' : 'warning'} pill className="px-3 py-2">
+                                                {b.status || 'Pending'}
+                                             </Badge>
+                                          </td>
+                                          <td className="text-end">
+                                             {b.status !== 'confirmed' && (
+                                                <button className="action-btn-circle action-confirm" onClick={() => handleConfirmBooking(b._id)} title="Confirm Booking">
+                                                   <i className="ri-check-line"></i>
+                                                </button>
+                                             )}
+                                             <button className="action-btn-circle action-delete" onClick={() => handleDeleteBooking(b._id)} title="Delete Booking">
+                                                <i className="ri-delete-bin-line"></i>
+                                             </button>
+                                          </td>
+                                       </tr>
+                                    ))
+                                 )}
+                              </tbody>
+                           </table>
+                        </div>
                      </div>
-                  </div>
-               </Col>
-            </Row>
+                  )}
+
+                  {/* TAB 4: USERS */}
+                  {activeTab === 'users' && (
+                     <div className="admin-panel-card">
+                        <div className="mb-4">
+                           <h5 className="fw-bold mb-1">Registered System Accounts ({filteredUsers.length})</h5>
+                           <p className="text-muted small mb-0">Registered user and admin profiles.</p>
+                        </div>
+
+                        <div className="table-responsive">
+                           <table className="admin-custom-table">
+                              <thead>
+                                 <tr>
+                                    <th>User</th>
+                                    <th>Email Address</th>
+                                    <th>Role</th>
+                                    <th>Joined Date</th>
+                                 </tr>
+                              </thead>
+                              <tbody>
+                                 {filteredUsers.length === 0 ? (
+                                    <tr>
+                                       <td colSpan="4" className="text-center py-4 text-muted">No registered users found.</td>
+                                    </tr>
+                                 ) : (
+                                    filteredUsers.map((u) => (
+                                       <tr key={u._id}>
+                                          <td>
+                                             <div className="d-flex align-items-center gap-3">
+                                                <div className="user__avatar">{u.username ? u.username.charAt(0).toUpperCase() : 'U'}</div>
+                                                <div className="fw-bold text-dark">{u.username}</div>
+                                             </div>
+                                          </td>
+                                          <td className="text-muted">{u.email}</td>
+                                          <td>
+                                             <Badge color={u.role === 'admin' ? 'indigo' : 'secondary'} pill className="px-3 py-2">
+                                                {u.role === 'admin' ? '👑 Admin' : '👤 User'}
+                                             </Badge>
+                                          </td>
+                                          <td><small className="text-muted">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'}</small></td>
+                                       </tr>
+                                    ))
+                                 )}
+                              </tbody>
+                           </table>
+                        </div>
+                     </div>
+                  )}
+               </>
+            )}
+
+            {/* TOUR MODAL (ADD / EDIT) */}
+            <Modal isOpen={showTourModal} toggle={() => setShowTourModal(false)} size="lg" centered>
+               <ModalHeader toggle={() => setShowTourModal(false)} className="bg-gradient text-white">
+                  <i className="ri-plane-line me-2"></i>
+                  {editingTour ? 'Edit Admin Tour Package' : 'Create New Tour (Added by Admin)'}
+               </ModalHeader>
+               <Form onSubmit={handleTourSubmit}>
+                  <ModalBody className="p-4">
+                     <Row>
+                        <Col md="6">
+                           <FormGroup>
+                              <Label className="fw-bold">Tour Title *</Label>
+                              <Input 
+                                 type="text" 
+                                 required
+                                 placeholder="e.g. Westminster Bridge & Royal London"
+                                 value={tourForm.title}
+                                 onChange={(e) => setTourForm({ ...tourForm, title: e.target.value })}
+                              />
+                           </FormGroup>
+                        </Col>
+
+                        <Col md="6">
+                           <FormGroup>
+                              <Label className="fw-bold">City / Destination *</Label>
+                              <Input 
+                                 type="text" 
+                                 required
+                                 placeholder="e.g. London"
+                                 value={tourForm.city}
+                                 onChange={(e) => setTourForm({ ...tourForm, city: e.target.value })}
+                              />
+                           </FormGroup>
+                        </Col>
+
+                        <Col md="6">
+                           <FormGroup>
+                              <Label className="fw-bold">Full Address / Meeting Point</Label>
+                              <Input 
+                                 type="text" 
+                                 placeholder="e.g. Westminster, London SW1A 0AA"
+                                 value={tourForm.address}
+                                 onChange={(e) => setTourForm({ ...tourForm, address: e.target.value })}
+                              />
+                           </FormGroup>
+                        </Col>
+
+                        <Col md="3">
+                           <FormGroup>
+                              <Label className="fw-bold">Price (₹ INR) *</Label>
+                              <Input 
+                                 type="number" 
+                                 required
+                                 min="0"
+                                 placeholder="12999"
+                                 value={tourForm.price}
+                                 onChange={(e) => setTourForm({ ...tourForm, price: e.target.value })}
+                              />
+                           </FormGroup>
+                        </Col>
+
+                        <Col md="3">
+                           <FormGroup>
+                              <Label className="fw-bold">Max Group Size</Label>
+                              <Input 
+                                 type="number" 
+                                 min="1"
+                                 value={tourForm.maxGroupSize}
+                                 onChange={(e) => setTourForm({ ...tourForm, maxGroupSize: e.target.value })}
+                              />
+                           </FormGroup>
+                        </Col>
+
+                        <Col md="6">
+                           <FormGroup>
+                              <Label className="fw-bold">Distance (KM)</Label>
+                              <Input 
+                                 type="number" 
+                                 placeholder="350"
+                                 value={tourForm.distance}
+                                 onChange={(e) => setTourForm({ ...tourForm, distance: e.target.value })}
+                              />
+                           </FormGroup>
+                        </Col>
+
+                        <Col md="6">
+                           <FormGroup className="pt-4">
+                              <Label check className="fw-bold text-primary">
+                                 <Input 
+                                    type="checkbox" 
+                                    checked={tourForm.featured}
+                                    onChange={(e) => setTourForm({ ...tourForm, featured: e.target.checked })}
+                                    className="me-2"
+                                 />
+                                 Mark as Featured Tour Package
+                              </Label>
+                           </FormGroup>
+                        </Col>
+
+                        <Col md="12">
+                           <FormGroup>
+                              <Label className="fw-bold">Photo Image URL</Label>
+                              <Input 
+                                 type="url" 
+                                 placeholder="https://images.unsplash.com/..."
+                                 value={tourForm.photo}
+                                 onChange={(e) => setTourForm({ ...tourForm, photo: e.target.value })}
+                              />
+                           </FormGroup>
+
+                           {/* Preset Quick Select Image Buttons */}
+                           <div className="mb-3">
+                              <small className="text-muted fw-bold d-block mb-1">Click to select high-res preset image:</small>
+                              <div className="image-preset-grid">
+                                 {PRESET_PHOTOS.map((p, idx) => (
+                                    <button 
+                                       type="button" 
+                                       key={idx} 
+                                       className={`image-preset-btn ${tourForm.photo === p.url ? 'selected' : ''}`}
+                                       onClick={() => setTourForm({ ...tourForm, photo: p.url })}
+                                    >
+                                       <img src={p.url} alt={p.name} />
+                                       <span>{p.name}</span>
+                                    </button>
+                                 ))}
+                              </div>
+                           </div>
+
+                           {/* Live Preview */}
+                           {tourForm.photo && (
+                              <div className="image-preview-container mb-3">
+                                 <img src={tourForm.photo} alt="Preview" onError={(e) => { e.target.src = PRESET_PHOTOS[0].url; }} />
+                              </div>
+                           )}
+                        </Col>
+
+                        <Col md="12">
+                           <FormGroup>
+                              <Label className="fw-bold">Tour Description</Label>
+                              <Input 
+                                 type="textarea" 
+                                 rows="3"
+                                 placeholder="Provide detailed itinerary, highlight key sights, inclusion details..."
+                                 value={tourForm.desc}
+                                 onChange={(e) => setTourForm({ ...tourForm, desc: e.target.value })}
+                              />
+                           </FormGroup>
+                        </Col>
+                     </Row>
+                  </ModalBody>
+                  <ModalFooter>
+                     <Button color="secondary" onClick={() => setShowTourModal(false)}>Cancel</Button>
+                     <Button color="indigo" type="submit" className="px-4">
+                        <i className="ri-save-line me-1"></i> {editingTour ? 'Save Tour Changes' : 'Publish Tour (by Admin)'}
+                     </Button>
+                  </ModalFooter>
+               </Form>
+            </Modal>
+
          </Container>
-
-        {/* Tour Modal */}
-        <Modal isOpen={showTourModal} toggle={() => setShowTourModal(false)} size="lg">
-           <div className="modal-header">
-              <h5 className="modal-title">{editingTour ? 'Edit Tour' : 'Add New Tour'}</h5>
-              <button type="button" className="btn-close" onClick={() => setShowTourModal(false)}></button>
-           </div>
-           
-           <Form onSubmit={handleTourSubmit}>
-              <div className="modal-body">
-                 <Row>
-                    <Col md="6">
-                       <FormGroup>
-                          <label>Title *</label>
-                          <input type="text" className="form-control" placeholder="Tour Title" 
-                             value={tourForm.title}
-                             onChange={e => setTourForm({ ...tourForm, title: e.target.value })} 
-                             required />
-                       </FormGroup>
-                    </Col>
-                    <Col md="6">
-                       <FormGroup>
-                          <label>City *</label>
-                          <input type="text" className="form-control" placeholder="City" 
-                             value={tourForm.city}
-                             onChange={e => setTourForm({ ...tourForm, city: e.target.value })} 
-                             required />
-                       </FormGroup>
-                    </Col>
-                 </Row>
-                 
-                 <Row>
-                    <Col md="6">
-                       <FormGroup>
-                          <label>Price *</label>
-                          <input type="number" className="form-control" placeholder="Price" 
-                             value={tourForm.price}
-                             onChange={e => setTourForm({ ...tourForm, price: e.target.value })} 
-                             required />
-                       </FormGroup>
-                    </Col>
-                    <Col md="6">
-                       <FormGroup>
-                          <label>Distance (km)</label>
-                          <input type="number" className="form-control" placeholder="Distance" 
-                             value={tourForm.distance}
-                             onChange={e => setTourForm({ ...tourForm, distance: e.target.value })} />
-                       </FormGroup>
-                    </Col>
-                 </Row>
-                 
-                 <Row>
-                    <Col md="6">
-                       <FormGroup>
-                          <label>Address</label>
-                          <input type="text" className="form-control" placeholder="Address" 
-                             value={tourForm.address}
-                             onChange={e => setTourForm({ ...tourForm, address: e.target.value })} />
-                       </FormGroup>
-                    </Col>
-                    <Col md="6">
-                       <FormGroup>
-                          <label>Max Group Size</label>
-                          <input type="number" className="form-control" placeholder="Max Group Size" 
-                             value={tourForm.maxGroupSize}
-                             onChange={e => setTourForm({ ...tourForm, maxGroupSize: e.target.value })} />
-                       </FormGroup>
-                    </Col>
-                 </Row>
-                 
-                 <FormGroup>
-                    <label>Photo URL</label>
-                    <input type="text" className="form-control" placeholder="Photo URL" 
-                       value={tourForm.photo}
-                       onChange={e => setTourForm({ ...tourForm, photo: e.target.value })} />
-                 </FormGroup>
-                 
-                 <FormGroup>
-                    <label>Description</label>
-                    <textarea className="form-control" rows="3" placeholder="Tour Description" 
-                       value={tourForm.desc}
-                       onChange={e => setTourForm({ ...tourForm, desc: e.target.value })} />
-                 </FormGroup>
-              </div>
-              
-              <div className="modal-footer">
-                 <Button color="secondary" onClick={() => setShowTourModal(false)}>Cancel</Button>
-                 <Button type="submit" color="primary">{editingTour ? "Update Tour" : "Create Tour"}</Button>
-              </div>
-           </Form>
-        </Modal>
-
-        {/* Booking Details Modal */}
-        <Modal isOpen={showBookingModal} toggle={() => setShowBookingModal(false)} size="lg">
-           <div className="modal-header">
-              <h5 className="modal-title">Booking Details</h5>
-              <button type="button" className="btn-close" onClick={() => setShowBookingModal(false)}></button>
-           </div>
-           <div className="modal-body">
-              {selectedBooking && (
-                 <div>
-                    <h6>Customer Information</h6>
-                    <p><strong>Name:</strong> {selectedBooking.fullName}</p>
-                    <p><strong>Email:</strong> {selectedBooking.email}</p>
-                    <p><strong>Phone:</strong> {selectedBooking.phone}</p>
-                    
-                    <h6 className="mt-3">Tour Information</h6>
-                    <p><strong>Tour:</strong> {selectedBooking.tourName}</p>
-                    <p><strong>Booking Date:</strong> {new Date(selectedBooking.bookAt).toLocaleString()}</p>
-                    <p><strong>Guest Size:</strong> {selectedBooking.guestSize}</p>
-                    <p><strong>Total Amount:</strong> {formatINR(selectedBooking.totalAmount || 0)}</p>
-                    <p><strong>Status:</strong> <Badge color="warning">{selectedBooking.status || 'pending'}</Badge></p>
-                    
-                    {selectedBooking.specialRequests && (
-                       <>
-                          <h6 className="mt-3">Special Requests</h6>
-                          <p>{selectedBooking.specialRequests}</p>
-                       </>
-                    )}
-                 </div>
-              )}
-           </div>
-           <div className="modal-footer">
-              <Button color="secondary" onClick={() => setShowBookingModal(false)}>Close</Button>
-           </div>
-        </Modal>
-
-        {/* User Details Modal */}
-        <Modal isOpen={showUserModal} toggle={() => setShowUserModal(false)} size="lg">
-           <div className="modal-header">
-              <h5 className="modal-title">User Details</h5>
-              <button type="button" className="btn-close" onClick={() => setShowUserModal(false)}></button>
-           </div>
-           <div className="modal-body">
-              {selectedUser && (
-                 <div>
-                    <h6>User Information</h6>
-                    <p><strong>Name:</strong> {selectedUser.username || 'N/A'}</p>
-                    <p><strong>Email:</strong> {selectedUser.email}</p>
-                    <p><strong>Phone:</strong> {selectedUser.phone || 'N/A'}</p>
-                    <p><strong>Role:</strong> <Badge color={selectedUser.role === 'admin' ? 'primary' : 'secondary'}>{selectedUser.role || 'user'}</Badge></p>
-                    {selectedUser.photo && (
-                       <>
-                          <h6 className="mt-3">Photo</h6>
-                          <img src={selectedUser.photo} alt="User" style={{ maxWidth: '100px', maxHeight: '100px' }} />
-                       </>
-                    )}
-                 </div>
-              )}
-           </div>
-           <div className="modal-footer">
-              <Button color="secondary" onClick={() => setShowUserModal(false)}>Close</Button>
-           </div>
-        </Modal>
       </div>
-   )
-}
+   );
+};
 
-export default AdminDashboard
+export default AdminDashboard;

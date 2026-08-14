@@ -3,6 +3,7 @@ import React from 'react'
 import { Card, CardBody, Button } from 'reactstrap'
 import { useNavigate } from 'react-router-dom'
 import { formatINR } from '../utils/formatCurrency'
+import './tour-card.css'
 
 const TourCard = ({ tour }) => {
    const navigate = useNavigate()
@@ -22,10 +23,15 @@ const TourCard = ({ tour }) => {
                src={tour.photo || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e'} 
                alt={tour.title}
                onError={(e) => {
-                  e.target.src = 'https://via.placeholder.com/300x200?text=No+Image'
+                  e.target.src = 'https://images.unsplash.com/photo-1469474968028-56623f02e42e'
                }}
             />
-            {tour.featured && <span className="featured__badge">Featured</span>}
+            <div className="tour__badges">
+               {tour.featured && <span className="featured__badge">★ Featured</span>}
+               {(tour.createdBy === 'Admin' || tour.createdBy === 'admin' || !tour.createdBy) && (
+                  <span className="admin__badge"><i className="ri-shield-star-line"></i> Admin Tour</span>
+               )}
+            </div>
          </div>
          
          <CardBody>
