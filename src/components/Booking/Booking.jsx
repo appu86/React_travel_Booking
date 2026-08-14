@@ -54,6 +54,19 @@ const Booking = ({ tour, avgRating }) => {
    const serviceFee = 10
    const totalAmount = Number(price || 0) * Number(booking.guestSize || 1) + Number(serviceFee)
 
+   const getAuthToken = () => {
+      if (user?.token) return user.token
+      if (token) return token
+      try {
+         const storedUser = localStorage.getItem('user')
+         if (storedUser) {
+            const parsed = JSON.parse(storedUser)
+            if (parsed?.token) return parsed.token
+         }
+      } catch (err) {}
+      return localStorage.getItem('token') || ''
+   }
+
    const handleClick = async e => {
       e.preventDefault()
 
@@ -62,12 +75,15 @@ const Booking = ({ tour, avgRating }) => {
             return alert('Please sign in to make a booking')
          }
 
+         const activeToken = getAuthToken()
+
          const res = await fetch(`${BASE_URL}/bookings`, {
             method: 'POST',
             headers: {
                'Content-Type': 'application/json',
-               ...(token ? { Authorization: `Bearer ${token}` } : {})
+               ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {})
             },
+            credentials: 'include',
             body: JSON.stringify({
                ...booking,
                seats: selectedSeats,

@@ -45,7 +45,13 @@ const Login = () => {
 
          console.log('Login success response:', result)
 
-         dispatch({ type: 'LOGIN_SUCCESS', payload: { ...result.data, role: result.role, token: result.token } })
+         const userData = { ...result.data, role: result.role, token: result.token }
+         if (result.token) {
+            localStorage.setItem('token', result.token)
+         }
+         localStorage.setItem('user', JSON.stringify(userData))
+
+         dispatch({ type: 'LOGIN_SUCCESS', payload: userData })
          navigate('/')
       } catch(err) {
          alert(err.message)
