@@ -260,22 +260,33 @@ const AdminDashboard = () => {
       }
    };
 
-   // Confirm Booking
-   const handleConfirmBooking = async (id) => {
+   // Confirm Booking and Notify Payment Mode
+   const handleConfirmBooking = async (booking) => {
       const token = getToken();
       if (!token) return;
+
+      const paymentMode = window.prompt(
+         "Enter payment mode & instructions to notify customer (e.g., UPI/GPay 9876543210, Bank Transfer, Cash at Tour):",
+         booking.paymentMode || "UPI / GPay (Admin Contact: 9876543210)"
+      );
+
+      if (paymentMode === null) return; // User cancelled prompt
+
       try {
-         const res = await fetch(`${BASE_URL}/bookings/${id}`, {
+         const res = await fetch(`${BASE_URL}/bookings/${booking._id}`, {
             method: 'PUT',
             headers: {
                'Content-Type': 'application/json',
                'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ status: 'confirmed' })
+            body: JSON.stringify({ 
+               status: 'confirmed',
+               paymentMode: paymentMode || 'Notified by Admin Team'
+            })
          });
          if (res.ok) {
-            setSuccessMsg("Booking status updated to Confirmed!");
-            setTimeout(() => setSuccessMsg(''), 3000);
+            setSuccessMsg("Booking accepted & Payment mode notified to customer!");
+            setTimeout(() => setSuccessMsg(''), 4000);
             fetchBookings();
          }
       } catch (err) {
@@ -636,17 +647,20 @@ const AdminDashboard = () => {
                                              <div className="fw-bold text-dark">{b.fullName || 'Guest User'}</div>
                                              <small className="text-muted">{b.userEmail || b.phone || 'No Contact'}</small>
                                           </td>
-                                          <td className="fw-semibold text-primary">{b.tourName || 'Tour Package'}</td>
+                                          <td className="fw-semibold text-primary">
+                                             <div>{b.tourName || 'Tour Package'}</div>
+                                             <small className="text-muted"><i className="ri-wallet-3-line me-1"></i>{b.paymentMode || 'Payment mode notified upon acceptance'}</small>
+                                          </td>
                                           <td>{b.guestSize || b.maxGroupSize || 1} Person(s)</td>
                                           <td>{b.bookAt ? new Date(b.bookAt).toLocaleDateString() : 'Recent'}</td>
                                           <td>
                                              <Badge color={b.status === 'confirmed' ? 'success' : 'warning'} pill className="px-3 py-2">
-                                                {b.status || 'Pending'}
+                                                {b.status === 'confirmed' ? '✅ Accepted & Payment Notified' : '⏳ Awaiting Admin Acceptance'}
                                              </Badge>
                                           </td>
                                           <td className="text-end">
                                              {b.status !== 'confirmed' && (
-                                                <button className="action-btn-circle action-confirm" onClick={() => handleConfirmBooking(b._id)} title="Confirm Booking">
+                                                <button className="action-btn-circle action-confirm" onClick={() => handleConfirmBooking(b)} title="Accept Booking & Notify Payment Mode">
                                                    <i className="ri-check-line"></i>
                                                 </button>
                                              )}
