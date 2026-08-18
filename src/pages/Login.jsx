@@ -19,10 +19,6 @@ const Login = () => {
       setCredentials(prev => ({ ...prev, [e.target.id]: e.target.value }))
    }
 
-   const fillDemoAdmin = () => {
-      setCredentials({ email: 'appu1444@gmail.com', password: '1234' })
-   }
-
    const handleClick = async e => {
       e.preventDefault()
       dispatch({ type: 'LOGIN_START' })
@@ -66,7 +62,7 @@ const Login = () => {
                      <div className="login__img text-white text-center">
                         <img src={loginImg} alt="Travel Login Illustration" className="mb-4" />
                         <h4 className="fw-bold">Explore the World</h4>
-                        <p className="text-white-50 small mb-0">Sign in to manage tour reservations, seat selections, and admin controls.</p>
+                        <p className="text-white-50 small mb-0">Sign in to manage tour reservations, seat selections, and customer bookings.</p>
                      </div>
 
                      <div className="login__form">
@@ -103,18 +99,7 @@ const Login = () => {
                            </Button>
                         </Form>
 
-                        {/* Demo Admin Helper Box for Interviewers */}
-                        <div className="demo-credentials-badge mt-4 text-start">
-                           <div className="d-flex align-items-center justify-content-between">
-                              <strong className="text-dark"><i className="ri-key-2-line text-warning me-1"></i>Demo Admin Account:</strong>
-                              <button type="button" className="btn btn-sm btn-link p-0 text-decoration-none fw-bold" onClick={fillDemoAdmin}>
-                                 Auto-Fill
-                              </button>
-                           </div>
-                           <small className="d-block text-muted">Email: appu1444@gmail.com | Pass: 1234</small>
-                        </div>
-
-                        <p className="mb-0">Don't have an account? <Link to='/register'>Create Account</Link></p>
+                        <p className="mb-0 mt-4">Don't have an account? <Link to='/register'>Create Account</Link></p>
                      </div>
                   </div>
                </Col>
