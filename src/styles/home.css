@@ -1,143 +1,154 @@
+/* home.css - Executive Modern Styles */
 :root {
    --primary-color     : #ff7e01;
    --secondary-color   : #faa935;
-   --heading-color     : #0b2727;
-   --text-color        : #6e7074;
+   --heading-color     : #0f172a;
+   --text-color        : #475569;
    --font-name         : "Montserrat", sans-serif;
    --subtitle-font-name: "Island Moments", cursive;
 }
 
 .hero__subtitle img {
-   width : 2.3rem;
+   width: 2.3rem;
    height: 2.3rem;
 }
 
 .hero__content h1 {
-   font-size    : 2.5rem;
-   font-weight  : 600;
-   margin-top   : 1rem;
-   margin-bottom: 2rem;
-   color        : var(--heading-color);
+   font-size: 3rem;
+   font-weight: 800;
+   margin-top: 1rem;
+   margin-bottom: 1.5rem;
+   color: #0f172a;
+   line-height: 1.25;
+   letter-spacing: -0.5px;
 }
 
 .hero__content h1 .hightlight {
-   color: var(--secondary-color);
+   background: linear-gradient(135deg, #ff7e5f, #feb47b);
+   -webkit-background-clip: text;
+   -webkit-text-fill-color: transparent;
 }
 
 .hero__content p {
-   font-size  : 1rem;
-   color      : var(--text-color);
-   line-height: 1.4rem;
+   font-size: 1.05rem;
+   color: #475569;
+   line-height: 1.6;
+   margin-bottom: 2rem;
+}
+
+.hero__img-box {
+   height: 360px;
+   border-radius: 24px;
+   overflow: hidden;
+   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+   transition: transform 0.3s ease;
+}
+
+.hero__img-box:hover {
+   transform: translateY(-8px);
 }
 
 .hero__img-box img,
 .hero__img-box video {
-   width        : 100%;
-   height       : 350px;
-   border-radius: 20px;
-   border       : 1px solid var(--secondary-color);
-   object-fit   : cover;
-}
-
-.hero__content {
-   padding-top: 3.5rem;
-}
-
-.hero__img-box {
-   padding-top: 2rem;
+   width: 100%;
+   height: 100%;
+   object-fit: cover;
 }
 
 .services__subtitle {
-   font-size  : 2rem;
-   font-weight: 500;
-   color      : #ee6e6e;
+   font-size: 1.8rem;
+   font-weight: 600;
+   color: #ff7e5f;
    font-family: var(--subtitle-font-name);
 }
 
 .services__title {
-   font-size  : 2rem;
-   font-weight: 500;
+   font-size: 2.2rem;
+   font-weight: 800;
+   color: #0f172a;
 }
 
 .featured__tour-title {
-   font-size  : 1.6rem;
-   font-weight: 500;
+   font-size: 2.2rem;
+   font-weight: 800;
+   color: #0f172a;
 }
 
 /* EXPERIENCE SECTION */
 .experience__content h2 {
-   font-size  : 2rem;
-   font-weight: 500;
-   margin-top : 1rem;
+   font-size: 2.2rem;
+   font-weight: 800;
+   color: #0f172a;
+   margin-top: 1rem;
 }
 
 .experience__content p {
-   font-size : 1.2rem;
-   color     : var(--text-color);
+   font-size: 1.05rem;
+   color: #475569;
+   line-height: 1.6;
    margin-top: 1rem;
 }
 
 .counter__wrapper {
-   margin-top: 1.6rem;
+   margin-top: 2rem;
 }
 
 .counter__box span {
-   width          : 70px;
-   height         : 70px;
-   margin         : auto;
-   display        : flex;
-   align-items    : center;
+   width: 75px;
+   height: 75px;
+   display: flex;
+   align-items: center;
    justify-content: center;
-   background     : var(--primary-color);
-   color          : #fff;
-   font-size      : 1.2rem;
-   font-weight    : 600;
-   border-radius  : 10px 5px 10px 5px;
+   background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%);
+   color: #ffffff;
+   font-size: 1.4rem;
+   font-weight: 800;
+   border-radius: 20px;
+   box-shadow: 0 8px 20px rgba(255, 126, 95, 0.35);
 }
 
 .counter__box h6 {
-   font-size : 0.8rem;
-   margin-top: 0.5rem;
-   color     : var(--text-color);
+   font-size: 0.88rem;
+   margin-top: 0.75rem;
+   font-weight: 600;
+   color: #475569;
 }
 
 .experience__img img {
-   width: 90%;
+   width: 100%;
+   border-radius: 24px;
+   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
 }
 
 /* GALLERY SECTION */
 .gallery__title {
-   font-size    : 1.6rem;
-   margin-bottom: 2.5rem;
-   margin-top   : 0.8rem;
+   font-size: 2.2rem;
+   font-weight: 800;
+   color: #0f172a;
+   margin-bottom: 2rem;
 }
 
 .masonry__img {
-   transition: 0.3s;
+   border-radius: 16px;
+   overflow: hidden;
+   transition: transform 0.3s ease;
 }
 
 .masonry__img:hover {
-   transform: scale(1.1);
+   transform: scale(1.04);
 }
 
 /* TESTIMONIAL SECTION */
 .testimonial__title {
-   font-size : 1.6rem;
-   margin-top: 0.8rem;
+   font-size: 2.2rem;
+   font-weight: 800;
+   color: #0f172a;
+   margin-bottom: 2rem;
 }
 
-/* =============== RESPONSIVE ================ */
-@media only screen and (max-width:992px) {
+@media only screen and (max-width: 992px) {
    .hero__content h1 {
-      font-size: 2.5rem;
-   }
-
-   .hero__img-box {
-      display: none;
-   }
-
-   .hero__video-box {
-      display: block;
+      font-size: 2.3rem;
    }
 
    .services__title,
@@ -145,24 +156,12 @@
    .gallery__title,
    .testimonial__title,
    .experience__content h2 {
-      font-size: 2rem;
-   }
-
-   .experience__img {
-      margin-top: 2rem;
+      font-size: 1.8rem;
    }
 }
 
 @media only screen and (max-width: 576px) {
    .hero__content h1 {
       font-size: 1.8rem;
-   }
-
-   .services__title,
-   .featured__tour-title,
-   .gallery__title,
-   .testimonial__title,
-   .experience__content h2 {
-      font-size: 1.5rem;
    }
 }

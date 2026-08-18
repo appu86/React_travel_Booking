@@ -3,7 +3,6 @@ import { Container, Row, Col, Form, FormGroup, Button } from 'reactstrap'
 import '../styles/login.css'
 import { Link, useNavigate } from 'react-router-dom'
 import registerImg from '../assets/images/login.png'
-import userIcon from '../assets/images/user.png'
 import { BASE_URL } from '../utils/config'
 
 const Register = () => {
@@ -16,7 +15,6 @@ const Register = () => {
    const [loading, setLoading] = useState(false)
    const navigate = useNavigate()
 
-   // handle input change
    const handleChange = (e) => {
       setCredentials((prev) => ({
          ...prev,
@@ -24,7 +22,6 @@ const Register = () => {
       }))
    }
 
-   // handle submit
    const handleClick = async (e) => {
       e.preventDefault()
 
@@ -43,7 +40,6 @@ const Register = () => {
             body: JSON.stringify(credentials)
          })
 
-         // 🔥 handle non-JSON responses safely
          let result
          try {
             result = await res.json()
@@ -52,46 +48,45 @@ const Register = () => {
          }
 
          if (!res.ok) {
-            console.error("Backend error:", result)
             return alert(result.message || "Registration failed")
          }
 
-         alert("✅ Registration successful!")
+         alert("✅ Registration successful! Please sign in with your credentials.")
          navigate('/login')
 
       } catch (err) {
-         console.error("Network/Server error:", err)
-         alert("❌ Server error. Check backend or MongoDB connection.")
+         console.error("Registration error:", err)
+         alert(err.message || "Server error. Check backend connection.")
       } finally {
          setLoading(false)
       }
    }
 
    return (
-      <section>
+      <section className="py-5 bg-light" style={{ minHeight: '85vh' }}>
          <Container>
             <Row>
-               <Col lg='8' className='m-auto'>
-                  <div className="login__container d-flex justify-content-between">
+               <Col lg='10' xl='9' className='m-auto'>
+                  <div className="login__container d-flex">
                      
-                     {/* image */}
-                     <div className="login__img">
-                        <img src={registerImg} alt="register" />
+                     <div className="login__img text-white text-center">
+                        <img src={registerImg} alt="Register Illustration" className="mb-4" />
+                        <h4 className="fw-bold">Join Travel World</h4>
+                        <p className="text-white-50 small mb-0">Create an account to book tours, select seats, and manage reservations.</p>
                      </div>
 
-                     {/* form */}
                      <div className="login__form">
-                        <div className="user">
-                           <img src={userIcon} alt="user" />
+                        <div className="mb-4">
+                           <h2>Create Account ✨</h2>
+                           <p className="text-muted small mb-0 text-start">Fill in your details to start exploring global tour packages.</p>
                         </div>
 
-                        <h2>Register</h2>
-
                         <Form onSubmit={handleClick}>
-                           <FormGroup>
+                           <FormGroup className="mb-3">
+                              <label className="fw-bold small text-secondary mb-1">Username</label>
                               <input 
                                  type="text" 
-                                 placeholder="Username"
+                                 placeholder="Choose a username"
                                  id="username"
                                  value={credentials.username}
                                  onChange={handleChange}
@@ -99,10 +94,11 @@ const Register = () => {
                               />
                            </FormGroup>
 
-                           <FormGroup>
+                           <FormGroup className="mb-3">
+                              <label className="fw-bold small text-secondary mb-1">Email Address</label>
                               <input 
                                  type="email"
-                                 placeholder="Email"
+                                 placeholder="name@example.com"
                                  id="email"
                                  value={credentials.email}
                                  onChange={handleChange}
@@ -110,10 +106,11 @@ const Register = () => {
                               />
                            </FormGroup>
 
-                           <FormGroup>
+                           <FormGroup className="mb-4">
+                              <label className="fw-bold small text-secondary mb-1">Password</label>
                               <input 
                                  type="password"
-                                 placeholder="Password"
+                                 placeholder="Create a strong password"
                                  id="password"
                                  value={credentials.password}
                                  onChange={handleChange}
@@ -122,16 +119,16 @@ const Register = () => {
                            </FormGroup>
 
                            <Button 
-                              className='btn secondary__btn auth__btn'
+                              className='btn auth__btn'
                               type='submit'
                               disabled={loading}
                            >
-                              {loading ? "Creating..." : "Create Account"}
+                              {loading ? "Registering..." : "Create Account"}
                            </Button>
                         </Form>
 
-                        <p>
-                           Already have an account? <Link to='/login'>Login</Link>
+                        <p className="mb-0">
+                           Already have an account? <Link to='/login'>Sign In</Link>
                         </p>
                      </div>
 

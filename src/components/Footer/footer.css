@@ -1,53 +1,89 @@
+/* footer.css - Dark Executive Footer */
 .footer {
-   padding-top   : 70px;
-   padding-bottom: 30px;
+   background: #0f172a;
+   color: #94a3b8;
+   padding-top: 5rem;
+   padding-bottom: 2rem;
+   border-top: 1px solid #1e293b;
 }
 
 .footer .logo img {
-   width        : 60%;
-   margin-bottom: 1rem;
+   width: 45%;
+   max-width: 140px;
+   margin-bottom: 1.25rem;
+   filter: brightness(0) invert(1);
 }
 
 .footer .logo p {
-   color    : var(--text-color);
-   font-size: 1rem;
+   color: #94a3b8;
+   font-size: 0.95rem;
+   line-height: 1.6;
 }
 
 .social__link span a {
    text-decoration: none;
-   color          : var(--heading-color);
-   font-size      : 1.5rem;
+   color: #cbd5e1;
+   font-size: 1.4rem;
+   width: 40px;
+   height: 40px;
+   background: #1e293b;
+   border-radius: 50%;
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
+   transition: all 0.25s ease;
+}
+
+.social__link span a:hover {
+   background: linear-gradient(135deg, #ff7e5f, #feb47b);
+   color: #ffffff;
+   transform: translateY(-3px);
 }
 
 .footer__link-title {
-   color        : var(--heading-color);
-   margin-bottom: 1rem;
+   color: #ffffff;
+   font-weight: 700;
+   font-size: 1.1rem;
+   margin-bottom: 1.5rem;
+   letter-spacing: -0.3px;
 }
 
-.footer__quick-links li a {
+.footer__quick-links {
+   background: transparent !important;
+}
+
+.footer__quick-links .list-group-item {
+   background: transparent !important;
+   color: #94a3b8 !important;
+   padding: 6px 0 !important;
+}
+
+.footer__quick-links a {
    text-decoration: none;
-   color          : var(--text-color);
-   font-size      : 1.2rem;
+   color: #94a3b8;
+   font-size: 0.95rem;
+   font-weight: 500;
+   transition: color 0.2s ease;
 }
 
 .footer__quick-links a:hover {
-   color: var(--secondary-color);
-}
-
-.footer__quick-links h6 span i {
-   color    : var(--secondary-color);
-   font-size: 1.4rem;
+   color: #feb47b;
 }
 
 .footer__quick-links h6 {
-   margin-bottom: 1rem;
+   color: #e2e8f0;
+   font-size: 0.9rem;
+   font-weight: 600;
 }
 
-.footer__quick-links p {
-   font-size: 1.2rem;
+.footer__quick-links h6 span i {
+   color: #ff7e5f;
+   font-size: 1.1rem;
 }
 
 .copyright {
-   color    : var(--text-color);
-   font-size: 1.2rem;
+   color: #64748b;
+   font-size: 0.88rem;
+   border-top: 1px solid #1e293b;
+   padding-top: 1.5rem;
 }
